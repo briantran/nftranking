@@ -110,8 +110,9 @@ ENV/
 env.bak/
 venv.bak/
 
-# IDE stuff
+# Brian custom ignores
 .idea
+example.db
 
 # Spyder project settings
 .spyderproject
