@@ -11,6 +11,8 @@ QUERY_STRING = f'SELECT token, rarity_score, RANK() OVER (ORDER BY rarity_score 
 
 
 def fetch_token_to_score_data(connection):
+    """Return a dict of {token => ScoreData(rarity_score, rank, percent_rank)}
+    """
     if row_count(connection, PENGUIN_SCORE_TABLE_NAME) < PENGUIN_COLLECTION_SIZE:
         raise Exception('Trying to fetch rank data before all data is scored')
 
@@ -18,7 +20,9 @@ def fetch_token_to_score_data(connection):
     return dict((token, ScoreData(*score_data)) for token, *score_data in score_data_cursor)
 
 
-def _pretty_print_rank_stats_for_token(token, token_to_score_data):
+def _pretty_print_score_data_for_token(token, token_to_score_data):
+    """Pretty print information about a token and its score data.
+    """
     score_data = token_to_score_data[token]
     print(
         f'Rank #{score_data.rank}: {token} (Rarity: {score_data.rarity_score}, Percentile: {score_data.percent_rank})'
@@ -26,6 +30,8 @@ def _pretty_print_rank_stats_for_token(token, token_to_score_data):
 
 
 def pretty_print_rarest_and_most_common_nfts(token_to_score_data):
+    """Pretty print information about the 15 most common and most rare tokens.
+    """
     rarest_nfts = []
     most_common_nfts = []
     for token, score_data in token_to_score_data.items():
@@ -39,9 +45,9 @@ def pretty_print_rarest_and_most_common_nfts(token_to_score_data):
 
     print('\nThe most rare tokens:')
     for _, token in sorted(rarest_nfts, reverse=True):
-        _pretty_print_rank_stats_for_token(token, token_to_score_data)
+        _pretty_print_score_data_for_token(token, token_to_score_data)
 
     print('\nThe most common tokens:')
     while most_common_nfts:
         _, token = heapq.heappop(most_common_nfts)
-        _pretty_print_rank_stats_for_token(token, token_to_score_data)
+        _pretty_print_score_data_for_token(token, token_to_score_data)

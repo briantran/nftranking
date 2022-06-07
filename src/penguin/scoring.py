@@ -3,7 +3,7 @@ from collections import defaultdict
 from src.const import PENGUIN_COLLECTION_SIZE
 from src.const import PENGUIN_SCORE_TABLE_NAME
 from src.const import PENGUIN_TABLE_NAME
-from src.penguin_data.dao import Penguin
+from src.penguin.dao import Penguin
 from src.utils import bulk_insert_statement
 from src.utils import chunks
 from src.utils import row_count
@@ -43,8 +43,8 @@ def populate_penguin_score_table(connection, batch_size, refresh_penguin_scores)
             penguin_score_insertion_values_list = []
             for unscored_penguin_row_data in chunk_of_unscored_penguins:
                 penguin = Penguin(*unscored_penguin_row_data)
-                rarity_score = penguin.rarity_score(feature_count_dict)
-                statistical_score = penguin.statistical_score(feature_count_dict)
+                rarity_score = penguin.calculate_rarity_score(feature_count_dict)
+                statistical_score = penguin.calculate_statistical_score(feature_count_dict)
                 penguin_score_insertion_values_list.append(
                     (penguin.token, statistical_score, rarity_score)
                 )

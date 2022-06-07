@@ -5,7 +5,7 @@ import aiohttp
 from src.const import DATA_FETCH_SEMAPHORE_VALUE
 from src.const import PENGUIN_COLLECTION_SIZE
 from src.const import PENGUIN_TABLE_NAME
-from src.penguin_data.dao import Penguin
+from src.penguin.dao import Penguin
 from src.utils import bulk_insert_statement
 from src.utils import chunks
 from src.utils import row_count
@@ -26,7 +26,7 @@ async def _fetch_all_penguin_insert_values(tokens):
                 url = f'https://ipfs.io/ipfs/QmWXJXRdExse2YHRY21Wvh4pjRxNRQcWVhcKw4DLVnqGqs/{token}'
                 async with session.get(url) as response:
                     result = await response.json()
-                    return Penguin.from_json(token, result).insert_values()
+                    return Penguin.from_json(token, result).calculate_insert_values()
 
         return await asyncio.gather(
             *(fetch_penguin_insert_values(token) for token in tokens),
