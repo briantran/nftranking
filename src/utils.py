@@ -2,12 +2,12 @@ def row_count(con, table):
     return con.execute(f'SELECT COUNT() FROM {table}').fetchone()[0]
 
 
-def flush_buffer(con, insert_statement, insert_buffer):
-    if not insert_buffer:
+def bulk_insert_statement(con, insert_statement, insertion_values_list):
+    if not insertion_values_list:
         return
 
     with con:
-        con.executemany(insert_statement, insert_buffer)
+        con.executemany(insert_statement, insertion_values_list)
 
 
 def chunks(iterable, n):

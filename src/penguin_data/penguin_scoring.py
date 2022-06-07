@@ -4,8 +4,8 @@ from src.const import PENGUIN_COLLECTION_SIZE
 from src.const import PENGUIN_SCORE_TABLE_NAME
 from src.const import PENGUIN_TABLE_NAME
 from src.penguin_data.dao import Penguin
+from src.utils import bulk_insert_statement
 from src.utils import chunks
-from src.utils import flush_buffer
 from src.utils import row_count
 
 DROP_TABLE_STATEMENT = f'DROP TABLE IF EXISTS {PENGUIN_SCORE_TABLE_NAME}'
@@ -40,14 +40,16 @@ def populate_penguin_score_table(con, batch_size, refresh_penguin_scores):
 
         unscored_penguins = con.execute(SELECT_UNSCORED_PENGUINS_QUERY)
         for chunk in chunks(unscored_penguins, batch_size):
-            insertion_buffer = []
+            penguin_score_insertion_values_list = []
             for unscored_penguin_row_data in chunk:
                 penguin = Penguin(*unscored_penguin_row_data)
                 rarity_score = penguin.rarity_score(feature_count_dict)
                 statistical_score = penguin.statistical_score(feature_count_dict)
-                insertion_buffer.append((penguin.token, statistical_score, rarity_score))
+                penguin_score_insertion_values_list.append(
+                    (penguin.token, statistical_score, rarity_score)
+                )
 
-            flush_buffer(con, INSERT_STATEMENT, insertion_buffer)
+            bulk_insert_statement(con, INSERT_STATEMENT, penguin_score_insertion_values_list)
 
     penguin_score_row_count = row_count(con, PENGUIN_SCORE_TABLE_NAME)
     print(f'We have scored {penguin_score_row_count} penguins!')
