@@ -1,4 +1,5 @@
 import math
+import logging
 
 import asyncio
 import aiohttp
@@ -6,14 +7,18 @@ import aiohttp
 from collections import defaultdict
 from collections import namedtuple
 
-from .const import PENGUIN_TABLE_NAME
-from .const import PENGUIN_SCORE_TABLE_NAME
+from .const import DATA_FETCH_SEMAPHORE_VALUE
 from .const import PENGUIN_COLLECTION_SIZE
-from .utils import filtered_chunks
+from .const import PENGUIN_SCORE_TABLE_NAME
+from .const import PENGUIN_TABLE_NAME
+
+from .utils import chunks
 from .utils import row_count
 from .utils import flush_buffer
 
 TokenRank = namedtuple('TokenRank', 'rank percent_rank')
+
+logging.basicConfig(format='%(asctime)s %(levelname)s: %(message)s', level=logging.INFO)
 
 
 class Penguin:
@@ -56,6 +61,23 @@ class Penguin:
         return Penguin(**args)
 
 
+async def fetch_all_token_metadata(tokens):
+    sem = asyncio.Semaphore(DATA_FETCH_SEMAPHORE_VALUE)
+
+    async def fetch_token_metadata(session, token):
+        async with sem:
+            url = f'https://ipfs.io/ipfs/QmWXJXRdExse2YHRY21Wvh4pjRxNRQcWVhcKw4DLVnqGqs/{token}'
+            async with session.get(url) as response:
+                return await response.json()
+
+    async with aiohttp.ClientSession() as session:
+        results = await asyncio.gather(
+            *(fetch_token_metadata(session, token) for token in tokens),
+            return_exceptions=False
+        )
+    return [Penguin.from_json(token, result).insert_values() for token, result in zip(tokens, results)]
+
+
 def populate_penguin_data_table(con, batch_size, refresh_penguin_data=False):
     with con:
         if refresh_penguin_data:
@@ -70,35 +92,19 @@ def populate_penguin_data_table(con, batch_size, refresh_penguin_data=False):
     if missing_data:
         already_stored_tokens = set(row_data[0] for row_data in con.execute('SELECT token FROM penguins'))
         tokens_to_fetch = (token for token in range(PENGUIN_COLLECTION_SIZE) if token not in already_stored_tokens)
-        # TODO: Make the IO concurrent
         insertion_buffer = []
 
         feature_string = ', '.join(Penguin.FEATURES)
         insert_statement = f'INSERT INTO {PENGUIN_TABLE_NAME} (token, {feature_string}) VALUES (?, ?, ?, ?, ?, ?)'
 
-        async def fetch(session, token):
-            url = f'https://ipfs.io/ipfs/QmWXJXRdExse2YHRY21Wvh4pjRxNRQcWVhcKw4DLVnqGqs/{token}'
-            async with session.get(url) as response:
-                return await response.json()
+        for chunk in chunks(tokens_to_fetch, batch_size):
+            insertion_buffer.extend(asyncio.run(fetch_all_token_metadata(chunk)))
 
-        async def fetch_all(tokens, loop):
-            async with aiohttp.ClientSession(loop=loop) as session:
-                results = await asyncio.gather(*[loop.create_task(fetch(session, token)) for token in tokens],
-                                               return_exceptions=True)
-            return [Penguin.from_json(token, result).insert_values() for token, result in zip(tokens, results)]
-
-        for chunk in filtered_chunks(tokens_to_fetch, batch_size):
-            import time
-            start_time = time.time()
-            loop = asyncio.get_event_loop()
-            insertion_buffer.extend(loop.run_until_complete(fetch_all(chunk, loop)))
-
-            print(f'Inserting into {PENGUIN_TABLE_NAME}: {[token for token, *_ in insertion_buffer]}')
+            logging.info(f'Inserting into {PENGUIN_TABLE_NAME}: {[token for token, *_ in insertion_buffer]}')
             flush_buffer(con, insert_statement, insertion_buffer)
-            print(start_time - time.time())
 
     penguin_data_row_count = row_count(con, PENGUIN_TABLE_NAME)
-    print(f'We have data on {penguin_data_row_count} penguins!')
+    logging.info(f'We have data on {penguin_data_row_count} penguins!')
 
 
 def populate_penguin_score_table(con, batch_size, refresh_penguin_scores):
@@ -111,17 +117,22 @@ def populate_penguin_score_table(con, batch_size, refresh_penguin_scores):
     penguin_score_row_count = row_count(con, PENGUIN_SCORE_TABLE_NAME)
     missing_data = penguin_score_row_count < PENGUIN_COLLECTION_SIZE
     if missing_data:
+        if row_count(con, PENGUIN_TABLE_NAME) < PENGUIN_COLLECTION_SIZE:
+            raise Exception('Trying to score penguins when not all penguin data is collected')
+
         feature_count_dict = defaultdict(lambda: defaultdict(int))
         for feature in Penguin.FEATURES:
             feature_counts = con.execute(f'SELECT {feature}, COUNT() FROM {PENGUIN_TABLE_NAME} GROUP BY {feature}')
             for feature_value, count in feature_counts:
                 feature_count_dict[feature][feature_value] = count
 
+        logging.debug(f'Feature Count Dict: {feature_count_dict}')
+
         unscored_penguins = con.execute(
             f'SELECT p.* FROM {PENGUIN_TABLE_NAME} p LEFT OUTER JOIN {PENGUIN_SCORE_TABLE_NAME} ps ON p.token=ps.token WHERE ps.token IS NULL')
         insertion_buffer = []
         insert_statement = f'INSERT INTO {PENGUIN_SCORE_TABLE_NAME} (token, statistical_score, rarity_score) VALUES (?, ?, ?)'
-        for chunk in filtered_chunks(unscored_penguins, batch_size):
+        for chunk in chunks(unscored_penguins, batch_size):
             for unscored_penguin_row_data in chunk:
                 penguin = Penguin(*unscored_penguin_row_data)
                 rarity_score = penguin.rarity_score(feature_count_dict)
@@ -131,7 +142,7 @@ def populate_penguin_score_table(con, batch_size, refresh_penguin_scores):
             flush_buffer(con, insert_statement, insertion_buffer)
 
     penguin_score_row_count = row_count(con, PENGUIN_SCORE_TABLE_NAME)
-    print(f'We have scored {penguin_score_row_count} penguins!')
+    logging.info(f'We have scored {penguin_score_row_count} penguins!')
 
 
 def rarity_rank_and_percentiles(con):
