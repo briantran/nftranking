@@ -34,7 +34,7 @@ python3 -m runner
 
 <img width="571" alt="image" src="https://user-images.githubusercontent.com/409320/172351166-4ab38fc5-73dc-462c-a605-ec8c1b6a6b54.png">
 
-**NOTE:** This script by default uses the SQLite database stored at `penguin.db`. This can be overridden via the `--db-file` flag.
+**NOTE:** This script by default uses the SQLite database stored at [penguin.db](penguin.db). This can be overridden via the `--db-file` flag.
 
 ```
 # Override the file storing the database.
