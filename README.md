@@ -30,6 +30,10 @@ python3 -m pip install -r requirements.txt
 python3 -m runner
 ```
 
+5. Once the data is ready. Input tokens you are curious about.
+
+<img width="571" alt="image" src="https://user-images.githubusercontent.com/409320/172351166-4ab38fc5-73dc-462c-a605-ec8c1b6a6b54.png">
+
 **NOTE:** This script by default uses the SQLite database stored at `penguin.db`. This can be overridden via the `--db-file` flag.
 
 ```
