@@ -1,4 +1,4 @@
 from .dao import Penguin
 from .penguin_data import populate_penguin_data_table
 from .penguin_scoring import populate_penguin_score_table
-from .rank import rarity_rank_and_percentiles, rarity_rank_and_percentile_for_token
+from .rank import rarity_rank_and_percentiles, rarity_rank_and_percentile_for_token, pretty_print_rarest_and_most_common_nfts

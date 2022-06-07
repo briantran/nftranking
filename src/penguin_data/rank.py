@@ -1,3 +1,4 @@
+import heapq
 from collections import namedtuple
 
 from src.const import PENGUIN_SCORE_TABLE_NAME, PENGUIN_COLLECTION_SIZE
@@ -28,3 +29,30 @@ def rarity_rank_and_percentile_for_token(con, token):
         (token,)
     )
     return TokenRank(*cur.fetchone())
+
+
+def pretty_print_rarest_and_most_common_nfts(rarity_ranks_and_percentiles):
+    rarest_nfts = []
+    most_common_nfts = []
+    for token in rarity_ranks_and_percentiles.keys():
+        rank = rarity_ranks_and_percentiles[token].rank
+        if len(rarest_nfts) < 15:
+            heapq.heappush(rarest_nfts, (-rank, token))
+            heapq.heappush(most_common_nfts, (rank, token))
+        else:
+            heapq.heappushpop(rarest_nfts, (-rank, token))
+            heapq.heappushpop(most_common_nfts, (rank, token))
+
+    def pretty_print_rank_stats(token):
+        print(
+            f'Rank #{rarity_ranks_and_percentiles[token].rank}: {token} with a rarity score of {rarity_ranks_and_percentiles[token].rarity_score}'
+        )
+
+    print('\nThe most rare tokens:')
+    for _, token in sorted(rarest_nfts, reverse=True):
+        pretty_print_rank_stats(token)
+
+    print('\nThe most common tokens:')
+    while most_common_nfts:
+        _, token = heapq.heappop(most_common_nfts)
+        pretty_print_rank_stats(token)
