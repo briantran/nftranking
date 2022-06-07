@@ -15,6 +15,7 @@ def main():
     parser.add_argument('--batch-size', type=int, default=DEFAULT_BATCH_SIZE)
     args = parser.parse_args()
 
+    print(f'Connecting to database: {json.dumps(args.db_file)}')
     con = sqlite3.connect(args.db_file)
 
     # Fetch data
@@ -37,8 +38,6 @@ def main():
     while True:
         try:
             user_input = input('--> ')
-            if user_input.strip() == 'quit':
-                break
             token = int(user_input)
             print('\n'.join([
                 f'Rank: {rarity_ranks_and_percentiles[token].rank}',

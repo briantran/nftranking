@@ -1,13 +1,10 @@
 import asyncio
-import logging
 
 import aiohttp
 
 from src.const import DATA_FETCH_SEMAPHORE_VALUE, PENGUIN_TABLE_NAME, PENGUIN_COLLECTION_SIZE
 from src.penguin_data.dao import Penguin
 from src.utils import chunks, flush_buffer, row_count
-
-logging.basicConfig(format='%(asctime)s %(levelname)s: %(message)s', level=logging.INFO)
 
 DROP_TABLE_STATEMENT = f'DROP TABLE IF EXISTS {PENGUIN_TABLE_NAME}'
 CREATE_TABLE_STATEMENT = f'CREATE TABLE IF NOT EXISTS {PENGUIN_TABLE_NAME} (token int primary key, background varchar, skin varchar, body varchar, face varchar, head varchar)'
@@ -43,16 +40,14 @@ def populate_penguin_data_table(con, batch_size, refresh_penguin_data=False):
     penguin_data_row_count = row_count(con, PENGUIN_TABLE_NAME)
 
     if penguin_data_row_count < PENGUIN_COLLECTION_SIZE:
-        logging.info(f'Fetching data for {PENGUIN_COLLECTION_SIZE - penguin_data_row_count} penguins!')
+        print(f'Fetching data for {PENGUIN_COLLECTION_SIZE - penguin_data_row_count} penguins!')
         already_stored_tokens = set(row_data[0] for row_data in con.execute(f'SELECT token FROM {PENGUIN_TABLE_NAME}'))
         tokens_to_fetch = (token for token in range(PENGUIN_COLLECTION_SIZE) if token not in already_stored_tokens)
         insertion_buffer = []
 
         for chunk in chunks(tokens_to_fetch, batch_size):
             insertion_buffer.extend(asyncio.run(_fetch_all_token_metadata(chunk)))
-
-            logging.debug(f'Inserting into {PENGUIN_TABLE_NAME}: {[token for token, *_ in insertion_buffer]}')
             flush_buffer(con, INSERT_STATEMENT, insertion_buffer)
 
     penguin_data_row_count = row_count(con, PENGUIN_TABLE_NAME)
-    logging.info(f'We have data on {penguin_data_row_count} penguins!')
+    print(f'We have data on {penguin_data_row_count} penguins!')
