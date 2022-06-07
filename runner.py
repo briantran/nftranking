@@ -43,10 +43,11 @@ def main():
         # Score NFTs
         penguin_data.populate_penguin_score_table(connection, args.batch_size, args.refresh_penguin_scores)
 
-        # Show some interesting stats
+        # Show stats on rarest and most common NFTs
         token_to_score_data = penguin_data.rarity_rank_and_percentiles(connection)
         penguin_data.pretty_print_rarest_and_most_common_nfts(token_to_score_data)
 
+        # Kick off interactive experience
         print('\nEnter any token you\'d like stats for: (Use Ctrl+C to quit)')
         while True:
             try:

@@ -17,8 +17,8 @@ SELECT_UNSCORED_PENGUINS_QUERY = f'SELECT p.* FROM {PENGUIN_TABLE_NAME} p LEFT O
 def _calculate_feature_counts(connection):
     feature_count_dict = defaultdict(lambda: defaultdict(int))
     for feature in Penguin.FEATURES:
-        feature_counts = connection.execute(f'SELECT {feature}, COUNT() FROM {PENGUIN_TABLE_NAME} GROUP BY {feature}')
-        for feature_value, count in feature_counts:
+        feature_counts_cursor = connection.execute(f'SELECT {feature}, COUNT() FROM {PENGUIN_TABLE_NAME} GROUP BY {feature}')
+        for feature_value, count in feature_counts_cursor:
             feature_count_dict[feature][feature_value] = count
     return feature_count_dict
 
@@ -38,8 +38,8 @@ def populate_penguin_score_table(connection, batch_size, refresh_penguin_scores)
 
         feature_count_dict = _calculate_feature_counts(connection)
 
-        unscored_penguins = connection.execute(SELECT_UNSCORED_PENGUINS_QUERY)
-        for chunk in chunks(unscored_penguins, batch_size):
+        unscored_penguins_cursor = connection.execute(SELECT_UNSCORED_PENGUINS_QUERY)
+        for chunk in chunks(unscored_penguins_cursor, batch_size):
             penguin_score_insertion_values_list = []
             for unscored_penguin_row_data in chunk:
                 penguin = Penguin(*unscored_penguin_row_data)

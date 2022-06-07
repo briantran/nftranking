@@ -22,16 +22,6 @@ def rarity_rank_and_percentiles(connection):
     return dict((token, ScoreData(*score_data)) for token, *score_data in score_data_cursor)
 
 
-def rarity_rank_and_percentile_for_token(connection, token):
-    _confirm_score_data_is_populated(connection)
-
-    score_data_cursor = connection.execute(
-        f'SELECT rarity_score, rk, prk FROM ({QUERY_STRING}) WHERE token = ?',
-        (token,)
-    )
-    return ScoreData(*score_data_cursor.fetchone())
-
-
 def _pretty_print_rank_stats_for_token(token, token_to_score_data):
     score_data = token_to_score_data[token]
     print(
