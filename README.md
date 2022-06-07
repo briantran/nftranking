@@ -27,7 +27,7 @@ python3 -m pip install -r requirements.txt
 4. Run the script from the virtual environment.
 
 ```
-python3 -m runner
+python3 runner.py
 ```
 
 5. Once the data is ready. Input tokens you are curious about.
@@ -37,9 +37,10 @@ python3 -m runner
 **NOTE:** This script by default uses the SQLite database stored at [penguin.db](penguin.db). This can be overridden via the `--db-file` flag.
 
 ```
-# Override the file storing the database.
-python3 -m runner --db-file foo.db
+# Override the file storing the database. If the database file does not exist
+# or is not fully populated, the runner script will fully populate its tables.
+python3 runner.py --db-file foo.db
 
 # Use the in-memory database that only lasts until the session is over.
-python3 -m runner --db-file :memory:
+python3 runner.py --db-file :memory:
 ```
