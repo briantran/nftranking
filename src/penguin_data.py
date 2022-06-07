@@ -8,7 +8,7 @@ from collections import namedtuple
 
 from .const import PENGUIN_TABLE_NAME
 from .const import PENGUIN_SCORE_TABLE_NAME
-from .const import COLLECTION_SIZE
+from .const import PENGUIN_COLLECTION_SIZE
 from .utils import filtered_chunks
 from .utils import row_count
 from .utils import flush_buffer
@@ -38,7 +38,7 @@ class Penguin:
 
     def _feature_rarity(self, feature, feature_count_dict):
         number_penguins_sharing_trait = feature_count_dict[feature][getattr(self, feature)]
-        return number_penguins_sharing_trait / COLLECTION_SIZE
+        return number_penguins_sharing_trait / PENGUIN_COLLECTION_SIZE
 
     def _feature_rarities(self, feature_count_dict):
         return dict((feature, self._feature_rarity(feature, feature_count_dict)) for feature in Penguin.FEATURES)
@@ -64,12 +64,12 @@ def populate_penguin_data_table(con, batch_size, refresh_penguin_data=False):
         con.execute(f'CREATE TABLE IF NOT EXISTS {PENGUIN_TABLE_NAME} (token int primary key, background varchar, skin varchar, body varchar, face varchar, head varchar)')
 
     penguin_data_row_count = row_count(con, PENGUIN_TABLE_NAME)
-    missing_data = penguin_data_row_count < COLLECTION_SIZE
+    missing_data = penguin_data_row_count < PENGUIN_COLLECTION_SIZE
 
     # Fetch missing NFT data
     if missing_data:
         already_stored_tokens = set(row_data[0] for row_data in con.execute('SELECT token FROM penguins'))
-        tokens_to_fetch = (token for token in range(COLLECTION_SIZE) if token not in already_stored_tokens)
+        tokens_to_fetch = (token for token in range(PENGUIN_COLLECTION_SIZE) if token not in already_stored_tokens)
         # TODO: Make the IO concurrent
         insertion_buffer = []
 
@@ -109,7 +109,7 @@ def populate_penguin_score_table(con, batch_size, refresh_penguin_scores):
         con.execute(
             f'CREATE TABLE IF NOT EXISTS {PENGUIN_SCORE_TABLE_NAME} (token int primary key, statistical_score real, rarity_score real)')
     penguin_score_row_count = row_count(con, PENGUIN_SCORE_TABLE_NAME)
-    missing_data = penguin_score_row_count < COLLECTION_SIZE
+    missing_data = penguin_score_row_count < PENGUIN_COLLECTION_SIZE
     if missing_data:
         feature_count_dict = defaultdict(lambda: defaultdict(int))
         for feature in Penguin.FEATURES:
@@ -135,7 +135,7 @@ def populate_penguin_score_table(con, batch_size, refresh_penguin_scores):
 
 
 def rarity_rank_and_percentiles(con):
-    if row_count(con, PENGUIN_SCORE_TABLE_NAME) < COLLECTION_SIZE:
+    if row_count(con, PENGUIN_SCORE_TABLE_NAME) < PENGUIN_COLLECTION_SIZE:
         raise Exception('Trying to fetch rank data before all data is scored')
 
     cur = con.execute(
@@ -144,7 +144,7 @@ def rarity_rank_and_percentiles(con):
 
 
 def rarity_rank_and_percentile_for_token(con, token):
-    if row_count(con, PENGUIN_SCORE_TABLE_NAME) < COLLECTION_SIZE:
+    if row_count(con, PENGUIN_SCORE_TABLE_NAME) < PENGUIN_COLLECTION_SIZE:
         raise Exception('Trying to fetch rank data before all data is scored')
 
     cur = con.execute(
