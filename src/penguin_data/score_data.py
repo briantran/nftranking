@@ -10,13 +10,9 @@ ScoreData = namedtuple('ScoreData', 'rarity_score rank percent_rank')
 QUERY_STRING = f'SELECT token, rarity_score, RANK() OVER (ORDER BY rarity_score DESC) AS rk, PERCENT_RANK() OVER (ORDER BY rarity_score ASC) AS prk FROM {PENGUIN_SCORE_TABLE_NAME} ORDER BY rarity_score DESC'
 
 
-def _confirm_score_data_is_populated(connection):
+def fetch_token_to_score_data(connection):
     if row_count(connection, PENGUIN_SCORE_TABLE_NAME) < PENGUIN_COLLECTION_SIZE:
         raise Exception('Trying to fetch rank data before all data is scored')
-
-
-def rarity_rank_and_percentiles(connection):
-    _confirm_score_data_is_populated(connection)
 
     score_data_cursor = connection.execute(QUERY_STRING)
     return dict((token, ScoreData(*score_data)) for token, *score_data in score_data_cursor)

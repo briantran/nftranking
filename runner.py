@@ -44,7 +44,7 @@ def main():
         penguin_data.populate_penguin_score_table(connection, args.batch_size, args.refresh_penguin_scores)
 
         # Show stats on rarest and most common NFTs
-        token_to_score_data = penguin_data.rarity_rank_and_percentiles(connection)
+        token_to_score_data = penguin_data.fetch_token_to_score_data(connection)
         penguin_data.pretty_print_rarest_and_most_common_nfts(token_to_score_data)
 
         # Kick off interactive experience
