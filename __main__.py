@@ -1,10 +1,10 @@
 import argparse
 import sqlite3
-from penguin.const import DEFAULT_SQL_LITE_DB
-from penguin.const import DEFAULT_BATCH_SIZE
-from penguin.penguin_data import populate_penguin_data_table
-from penguin.penguin_data import populate_penguin_score_table
-from penguin.penguin_data import rarity_rank_and_percentiles
+from src.const import DEFAULT_SQL_LITE_DB
+from src.const import DEFAULT_BATCH_SIZE
+from src.penguin_data import populate_penguin_data_table
+from src.penguin_data import populate_penguin_score_table
+from src.penguin_data import rarity_rank_and_percentiles
 
 
 def main():
