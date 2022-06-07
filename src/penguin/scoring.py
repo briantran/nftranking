@@ -15,6 +15,13 @@ SELECT_UNSCORED_PENGUINS_QUERY = f'SELECT p.* FROM {PENGUIN_TABLE_NAME} p LEFT O
 
 
 def _calculate_feature_counts(connection):
+    """Calculate the number of times each value of each feature has occurred within a collection.
+
+    This will be represented as a 2-dimensional dict: {feature_name => {feature_value => count}}.
+
+    Example:
+        {'Face' => {'Eyepatch' => 18}}
+    """
     feature_count_dict = defaultdict(lambda: defaultdict(int))
     for feature in Penguin.FEATURES:
         feature_counts_cursor = connection.execute(f'SELECT {feature}, COUNT() FROM {PENGUIN_TABLE_NAME} GROUP BY {feature}')
@@ -24,6 +31,8 @@ def _calculate_feature_counts(connection):
 
 
 def populate_penguin_score_table(connection, batch_size, refresh_penguin_scores):
+    """Calculate and store score data for any NFTs that are not already persisted in PENGUIN_SCORE_TABLE_NAME.
+    """
     with connection:
         if refresh_penguin_scores:
             connection.execute(DROP_TABLE_STATEMENT)

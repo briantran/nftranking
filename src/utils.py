@@ -20,7 +20,7 @@ def chunks(iterable, n):
     chunk_buffer = []
     for el in iterable:
         chunk_buffer.append(el)
-        if len(chunk_buffer) > n:
+        if len(chunk_buffer) >= n:
             yield chunk_buffer
             chunk_buffer = []
 
