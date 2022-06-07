@@ -41,10 +41,9 @@ def populate_penguin_data_table(con, batch_size, refresh_penguin_data=False):
         con.execute(CREATE_TABLE_STATEMENT)
 
     penguin_data_row_count = row_count(con, PENGUIN_TABLE_NAME)
-    missing_data = penguin_data_row_count < PENGUIN_COLLECTION_SIZE
 
-    # Fetch missing NFT data
-    if missing_data:
+    if penguin_data_row_count < PENGUIN_COLLECTION_SIZE:
+        logging.info(f'Fetching data for {PENGUIN_COLLECTION_SIZE - penguin_data_row_count} penguins!')
         already_stored_tokens = set(row_data[0] for row_data in con.execute(f'SELECT token FROM {PENGUIN_TABLE_NAME}'))
         tokens_to_fetch = (token for token in range(PENGUIN_COLLECTION_SIZE) if token not in already_stored_tokens)
         insertion_buffer = []
@@ -52,7 +51,7 @@ def populate_penguin_data_table(con, batch_size, refresh_penguin_data=False):
         for chunk in chunks(tokens_to_fetch, batch_size):
             insertion_buffer.extend(asyncio.run(_fetch_all_token_metadata(chunk)))
 
-            logging.info(f'Inserting into {PENGUIN_TABLE_NAME}: {[token for token, *_ in insertion_buffer]}')
+            logging.debug(f'Inserting into {PENGUIN_TABLE_NAME}: {[token for token, *_ in insertion_buffer]}')
             flush_buffer(con, INSERT_STATEMENT, insertion_buffer)
 
     penguin_data_row_count = row_count(con, PENGUIN_TABLE_NAME)

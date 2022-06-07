@@ -1,8 +1,11 @@
 import argparse
+import json
 import sqlite3
 from src import penguin_data
 from src.const import DEFAULT_SQL_LITE_DB
 from src.const import DEFAULT_BATCH_SIZE
+from src.const import PENGUIN_SCORE_TABLE_NAME
+
 
 def main():
     parser = argparse.ArgumentParser(description="NFT Ranking")
@@ -20,21 +23,39 @@ def main():
     # Score them
     penguin_data.populate_penguin_score_table(con, args.batch_size, args.refresh_penguin_scores)
 
-    # Calculate percentiles
-    token_to_rarity_score_percentile = penguin_data.rarity_rank_and_percentiles(con)
+    # Show some interesting stats
+    rarity_ranks_and_percentiles = penguin_data.rarity_rank_and_percentiles(con)
+    print('\nThe most rare tokens:')
+    for token, rarity_score in con.execute(f'SELECT token, rarity_score FROM {PENGUIN_SCORE_TABLE_NAME} ORDER BY rarity_score DESC LIMIT 15'):
+        print(f'Rank #{rarity_ranks_and_percentiles[token].rank}: {token} with a rarity score of {rarity_score}')
 
-    # TODO Remove eye-balling code
-    from src.const import PENGUIN_SCORE_TABLE_NAME
-    for row_data in con.execute(f'SELECT * FROM {PENGUIN_SCORE_TABLE_NAME} ORDER BY rarity_score DESC'):
-        print(row_data, token_to_rarity_score_percentile[row_data[0]])
-        print(penguin_data.rarity_rank_and_percentile_for_token(con, row_data[0]))
-    # import pdb; pdb.set_trace()
+    print('\nThe most common tokens:')
+    for token, rarity_score in con.execute(f'SELECT token, rarity_score FROM {PENGUIN_SCORE_TABLE_NAME} ORDER BY rarity_score ASC LIMIT 15'):
+        print(f'Rank #{rarity_ranks_and_percentiles[token].rank}: {token} with a rarity score of {rarity_score}')
 
-    # Compare the scores against other tools  (ex: https://gem.xyz, https://raritysniper.com, …)
+    print('\nEnter any token you\'d like stats for:')
+    while True:
+        try:
+            user_input = input('--> ')
+            if user_input.strip() == 'quit':
+                break
+            token = int(user_input)
+            print('\n'.join([
+                f'Rank: {rarity_ranks_and_percentiles[token].rank}',
+                f'Rarity Score: {rarity_ranks_and_percentiles[token].rarity_score}',
+                f'Percentile Score: {rarity_ranks_and_percentiles[token].percent_rank}',
+                f'Rarity Sniper: https://raritysniper.com/pudgy-penguins/{token}',
+                f'Gem: https://www.gem.xyz/asset/0xbd3531da5cf5857e7cfaa92426877b022e612cf8/{token}',
+            ]))
+        except KeyboardInterrupt:
+            break
+        except (KeyError, ValueError):
+            print('{} is not a valid token.\nPlease try again.'.format(json.dumps(user_input)))
 
     # Bonus: analyze the correlation between rarity score and 2ndary sales transaction volume and price on a NFT
     # marketplace of your choice.
     con.close()
+    print('\nGoodbye!')
 
 
 if __name__ == "__main__":
