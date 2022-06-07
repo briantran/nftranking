@@ -39,8 +39,8 @@ def populate_penguin_score_table(con, batch_size, refresh_penguin_scores):
         feature_count_dict = _calculate_feature_counts(con)
 
         unscored_penguins = con.execute(SELECT_UNSCORED_PENGUINS_QUERY)
-        insertion_buffer = []
         for chunk in chunks(unscored_penguins, batch_size):
+            insertion_buffer = []
             for unscored_penguin_row_data in chunk:
                 penguin = Penguin(*unscored_penguin_row_data)
                 rarity_score = penguin.rarity_score(feature_count_dict)

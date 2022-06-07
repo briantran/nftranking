@@ -9,8 +9,6 @@ def flush_buffer(con, insert_statement, insert_buffer):
     with con:
         con.executemany(insert_statement, insert_buffer)
 
-    insert_buffer.clear()
-
 
 def chunks(iterable, n):
     chunk_buffer = []
