@@ -44,21 +44,22 @@ def main():
         penguin_data.populate_penguin_score_table(connection, args.batch_size, args.refresh_penguin_scores)
 
         # Show some interesting stats
-        rarity_ranks_and_percentiles = penguin_data.rarity_rank_and_percentiles(connection)
-        penguin_data.pretty_print_rarest_and_most_common_nfts(rarity_ranks_and_percentiles)
+        token_to_score_data = penguin_data.rarity_rank_and_percentiles(connection)
+        penguin_data.pretty_print_rarest_and_most_common_nfts(token_to_score_data)
 
         print('\nEnter any token you\'d like stats for: (Use Ctrl+C to quit)')
         while True:
             try:
                 user_input = input('--> ')
                 token = int(user_input)
-                print('\n'.join([
-                    f'Rank: {rarity_ranks_and_percentiles[token].rank}',
-                    f'Rarity Score: {rarity_ranks_and_percentiles[token].rarity_score}',
-                    f'Percentile Score: {rarity_ranks_and_percentiles[token].percent_rank}',
+                score_data = token_to_score_data[token]
+                print('\n'.join((
+                    f'Rank: {score_data.rank}',
+                    f'Rarity Score: {score_data.rarity_score}',
+                    f'Percentile Score: {score_data.percent_rank}',
                     f'Rarity Sniper: https://raritysniper.com/pudgy-penguins/{token}',
                     f'Gem: https://www.gem.xyz/asset/0xbd3531da5cf5857e7cfaa92426877b022e612cf8/{token}',
-                ]))
+                )))
             except KeyboardInterrupt:
                 print('\nGoodbye!')
                 break

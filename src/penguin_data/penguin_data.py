@@ -44,7 +44,9 @@ def populate_penguin_data_table(connection, batch_size, refresh_penguin_data=Fal
 
     if penguin_data_row_count < PENGUIN_COLLECTION_SIZE:
         print(f'Fetching data for {PENGUIN_COLLECTION_SIZE - penguin_data_row_count} penguins!')
-        already_stored_tokens = set(token for token, *_ in connection.execute(f'SELECT token FROM {PENGUIN_TABLE_NAME}'))
+
+        already_stored_tokens_cursor = connection.execute(f'SELECT token FROM {PENGUIN_TABLE_NAME}')
+        already_stored_tokens = set(token for token, *_ in already_stored_tokens_cursor)
         tokens_to_fetch = (token for token in range(PENGUIN_COLLECTION_SIZE) if token not in already_stored_tokens)
 
         for chunk in chunks(tokens_to_fetch, batch_size):
