@@ -9,10 +9,10 @@ from src.const import PENGUIN_SCORE_TABLE_NAME
 
 def main():
     parser = argparse.ArgumentParser(description="NFT Ranking")
-    parser.add_argument('--refresh-penguin-data', action='store_true')
-    parser.add_argument('--refresh-penguin-scores', action='store_true')
-    parser.add_argument('--db-file', default=DEFAULT_SQL_LITE_DB)
-    parser.add_argument('--batch-size', type=int, default=DEFAULT_BATCH_SIZE)
+    parser.add_argument('--refresh-penguin-data', action='store_true', help='re-fetches the penguin data from scratch')
+    parser.add_argument('--refresh-penguin-scores', action='store_true', help='recalculates the penguin scores from scratch')
+    parser.add_argument('--db-file', default=DEFAULT_SQL_LITE_DB, help='file path of SQLite db')
+    parser.add_argument('--batch-size', type=int, default=DEFAULT_BATCH_SIZE, help='max number of rows inserted into the database at a time')
     args = parser.parse_args()
 
     print(f'Connecting to database: {json.dumps(args.db_file)}')
