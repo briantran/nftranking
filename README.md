@@ -8,7 +8,7 @@ Prompt: [Google Doc Link](https://docs.google.com/document/d/10B-xaHM0yeb9dt4DCV
 1. Enter the repo directory.
 
 ```
-cd nft_ranking/
+cd nftranking/
 ```
 
 2. Set up and activate virtual environment.
