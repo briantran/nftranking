@@ -34,7 +34,7 @@ def main():
     for token, rarity_score in con.execute(f'SELECT token, rarity_score FROM {PENGUIN_SCORE_TABLE_NAME} ORDER BY rarity_score ASC LIMIT 15'):
         print(f'Rank #{rarity_ranks_and_percentiles[token].rank}: {token} with a rarity score of {rarity_score}')
 
-    print('\nEnter any token you\'d like stats for:')
+    print('\nEnter any token you\'d like stats for: (Use Ctrl+C to quit)')
     while True:
         try:
             user_input = input('--> ')
