@@ -12,23 +12,23 @@ def main():
     parser.add_argument(
         '--refresh-penguin-data',
         action='store_true',
-        help='re-fetches the penguin data from scratch'
+        help='Deletes already persisted penguin data (if it exists) and re-fetches.'
     )
     parser.add_argument(
         '--refresh-penguin-scores',
         action='store_true',
-        help='recalculates the penguin scores from scratch'
+        help='Deletes already persisted penguin scores (if it exists) and recalculates.'
     )
     parser.add_argument(
         '--db-file',
         default=DEFAULT_SQL_LITE_DB,
-        help='file path of SQLite db'
+        help='File path of SQLite DB. Use `:memory:` for in-memory store.'
     )
     parser.add_argument(
         '--batch-size',
         type=int,
         default=DEFAULT_BATCH_SIZE,
-        help='max number of rows inserted into the database at a time'
+        help='Max number of rows inserted into the database at a time.'
     )
     args = parser.parse_args()
 

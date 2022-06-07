@@ -45,3 +45,21 @@ python3 runner.py --db-file foo.db
 # Use the in-memory database that only lasts until the session is over.
 python3 runner.py --db-file :memory:
 ```
+
+## Help Message
+
+```
+usage: runner.py [-h] [--refresh-penguin-data] [--refresh-penguin-scores] [--db-file DB_FILE] [--batch-size BATCH_SIZE]
+
+NFT Ranking
+
+optional arguments:
+  -h, --help            show this help message and exit
+  --refresh-penguin-data
+                        Deletes already persisted penguin data (if it exists) and re-fetches.
+  --refresh-penguin-scores
+                        Deletes already persisted penguin scores (if it exists) and recalculates.
+  --db-file DB_FILE     File path of SQLite DB. Use `:memory:` for in-memory store.
+  --batch-size BATCH_SIZE
+                        Max number of rows inserted into the database at a time.
+```
