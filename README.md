@@ -32,7 +32,8 @@ python3 runner.py
 
 5. Once the data is ready. Input tokens you are curious about.
 
-<img width="571" alt="image" src="https://user-images.githubusercontent.com/409320/172351166-4ab38fc5-73dc-462c-a605-ec8c1b6a6b54.png">
+<img width="832" alt="Screen Shot 2022-06-07 at 10 31 55 AM" src="https://user-images.githubusercontent.com/409320/172446244-9a83017b-43c3-4474-b45f-9116c7289c76.png">
+
 
 **NOTE:** This script by default uses the SQLite database stored at [penguin.db](penguin.db). This can be overridden via the `--db-file` flag.
 
