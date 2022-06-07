@@ -1,13 +1,13 @@
-def row_count(con, table):
-    return con.execute(f'SELECT COUNT() FROM {table}').fetchone()[0]
+def row_count(connection, table):
+    return connection.execute(f'SELECT COUNT() FROM {table}').fetchone()[0]
 
 
-def bulk_insert_statement(con, insert_statement, insertion_values_list):
+def bulk_insert_statement(connection, insert_statement, insertion_values_list):
     if not insertion_values_list:
         return
 
-    with con:
-        con.executemany(insert_statement, insertion_values_list)
+    with connection:
+        connection.executemany(insert_statement, insertion_values_list)
 
 
 def chunks(iterable, n):

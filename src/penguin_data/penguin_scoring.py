@@ -14,31 +14,31 @@ INSERT_STATEMENT = f'INSERT INTO {PENGUIN_SCORE_TABLE_NAME} (token, statistical_
 SELECT_UNSCORED_PENGUINS_QUERY = f'SELECT p.* FROM {PENGUIN_TABLE_NAME} p LEFT OUTER JOIN {PENGUIN_SCORE_TABLE_NAME} ps ON p.token=ps.token WHERE ps.token IS NULL'
 
 
-def _calculate_feature_counts(con):
+def _calculate_feature_counts(connection):
     feature_count_dict = defaultdict(lambda: defaultdict(int))
     for feature in Penguin.FEATURES:
-        feature_counts = con.execute(f'SELECT {feature}, COUNT() FROM {PENGUIN_TABLE_NAME} GROUP BY {feature}')
+        feature_counts = connection.execute(f'SELECT {feature}, COUNT() FROM {PENGUIN_TABLE_NAME} GROUP BY {feature}')
         for feature_value, count in feature_counts:
             feature_count_dict[feature][feature_value] = count
     return feature_count_dict
 
 
-def populate_penguin_score_table(con, batch_size, refresh_penguin_scores):
-    with con:
+def populate_penguin_score_table(connection, batch_size, refresh_penguin_scores):
+    with connection:
         if refresh_penguin_scores:
-            con.execute(DROP_TABLE_STATEMENT)
+            connection.execute(DROP_TABLE_STATEMENT)
 
-        con.execute(CREATE_TABLE_STATEMENT)
+        connection.execute(CREATE_TABLE_STATEMENT)
 
-    penguin_score_row_count = row_count(con, PENGUIN_SCORE_TABLE_NAME)
+    penguin_score_row_count = row_count(connection, PENGUIN_SCORE_TABLE_NAME)
     missing_data = penguin_score_row_count < PENGUIN_COLLECTION_SIZE
     if missing_data:
-        if row_count(con, PENGUIN_TABLE_NAME) < PENGUIN_COLLECTION_SIZE:
+        if row_count(connection, PENGUIN_TABLE_NAME) < PENGUIN_COLLECTION_SIZE:
             raise Exception('Trying to score penguins when not all penguin data is collected')
 
-        feature_count_dict = _calculate_feature_counts(con)
+        feature_count_dict = _calculate_feature_counts(connection)
 
-        unscored_penguins = con.execute(SELECT_UNSCORED_PENGUINS_QUERY)
+        unscored_penguins = connection.execute(SELECT_UNSCORED_PENGUINS_QUERY)
         for chunk in chunks(unscored_penguins, batch_size):
             penguin_score_insertion_values_list = []
             for unscored_penguin_row_data in chunk:
@@ -49,7 +49,7 @@ def populate_penguin_score_table(con, batch_size, refresh_penguin_scores):
                     (penguin.token, statistical_score, rarity_score)
                 )
 
-            bulk_insert_statement(con, INSERT_STATEMENT, penguin_score_insertion_values_list)
+            bulk_insert_statement(connection, INSERT_STATEMENT, penguin_score_insertion_values_list)
 
-    penguin_score_row_count = row_count(con, PENGUIN_SCORE_TABLE_NAME)
+    penguin_score_row_count = row_count(connection, PENGUIN_SCORE_TABLE_NAME)
     print(f'We have scored {penguin_score_row_count} penguins!')

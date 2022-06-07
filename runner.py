@@ -33,37 +33,40 @@ def main():
     args = parser.parse_args()
 
     print(f'Connecting to database: {json.dumps(args.db_file)}')
-    con = sqlite3.connect(args.db_file)
+    connection = None
+    try:
+        connection = sqlite3.connect(args.db_file)
 
-    # Fetch NFT data
-    penguin_data.populate_penguin_data_table(con, args.batch_size, args.refresh_penguin_data)
+        # Fetch NFT data
+        penguin_data.populate_penguin_data_table(connection, args.batch_size, args.refresh_penguin_data)
 
-    # Score NFTs
-    penguin_data.populate_penguin_score_table(con, args.batch_size, args.refresh_penguin_scores)
+        # Score NFTs
+        penguin_data.populate_penguin_score_table(connection, args.batch_size, args.refresh_penguin_scores)
 
-    # Show some interesting stats
-    rarity_ranks_and_percentiles = penguin_data.rarity_rank_and_percentiles(con)
-    penguin_data.pretty_print_rarest_and_most_common_nfts(rarity_ranks_and_percentiles)
+        # Show some interesting stats
+        rarity_ranks_and_percentiles = penguin_data.rarity_rank_and_percentiles(connection)
+        penguin_data.pretty_print_rarest_and_most_common_nfts(rarity_ranks_and_percentiles)
 
-    print('\nEnter any token you\'d like stats for: (Use Ctrl+C to quit)')
-    while True:
-        try:
-            user_input = input('--> ')
-            token = int(user_input)
-            print('\n'.join([
-                f'Rank: {rarity_ranks_and_percentiles[token].rank}',
-                f'Rarity Score: {rarity_ranks_and_percentiles[token].rarity_score}',
-                f'Percentile Score: {rarity_ranks_and_percentiles[token].percent_rank}',
-                f'Rarity Sniper: https://raritysniper.com/pudgy-penguins/{token}',
-                f'Gem: https://www.gem.xyz/asset/0xbd3531da5cf5857e7cfaa92426877b022e612cf8/{token}',
-            ]))
-        except KeyboardInterrupt:
-            break
-        except (KeyError, ValueError):
-            print('{} is not a valid token.\nPlease try again.'.format(json.dumps(user_input)))
-
-    con.close()
-    print('\nGoodbye!')
+        print('\nEnter any token you\'d like stats for: (Use Ctrl+C to quit)')
+        while True:
+            try:
+                user_input = input('--> ')
+                token = int(user_input)
+                print('\n'.join([
+                    f'Rank: {rarity_ranks_and_percentiles[token].rank}',
+                    f'Rarity Score: {rarity_ranks_and_percentiles[token].rarity_score}',
+                    f'Percentile Score: {rarity_ranks_and_percentiles[token].percent_rank}',
+                    f'Rarity Sniper: https://raritysniper.com/pudgy-penguins/{token}',
+                    f'Gem: https://www.gem.xyz/asset/0xbd3531da5cf5857e7cfaa92426877b022e612cf8/{token}',
+                ]))
+            except KeyboardInterrupt:
+                print('\nGoodbye!')
+                break
+            except (KeyError, ValueError):
+                print('{} is not a valid token.\nPlease try again.'.format(json.dumps(user_input)))
+    finally:
+        if connection:
+            connection.close()
 
 
 if __name__ == "__main__":

@@ -33,23 +33,23 @@ async def _fetch_all_penguin_insert_values(tokens):
         )
 
 
-def populate_penguin_data_table(con, batch_size, refresh_penguin_data=False):
-    with con:
+def populate_penguin_data_table(connection, batch_size, refresh_penguin_data=False):
+    with connection:
         if refresh_penguin_data:
-            con.execute(DROP_TABLE_STATEMENT)
+            connection.execute(DROP_TABLE_STATEMENT)
 
-        con.execute(CREATE_TABLE_STATEMENT)
+        connection.execute(CREATE_TABLE_STATEMENT)
 
-    penguin_data_row_count = row_count(con, PENGUIN_TABLE_NAME)
+    penguin_data_row_count = row_count(connection, PENGUIN_TABLE_NAME)
 
     if penguin_data_row_count < PENGUIN_COLLECTION_SIZE:
         print(f'Fetching data for {PENGUIN_COLLECTION_SIZE - penguin_data_row_count} penguins!')
-        already_stored_tokens = set(token for token, *_ in con.execute(f'SELECT token FROM {PENGUIN_TABLE_NAME}'))
+        already_stored_tokens = set(token for token, *_ in connection.execute(f'SELECT token FROM {PENGUIN_TABLE_NAME}'))
         tokens_to_fetch = (token for token in range(PENGUIN_COLLECTION_SIZE) if token not in already_stored_tokens)
 
         for chunk in chunks(tokens_to_fetch, batch_size):
             penguin_insert_values_list = asyncio.run(_fetch_all_penguin_insert_values(chunk))
-            bulk_insert_statement(con, INSERT_STATEMENT, penguin_insert_values_list)
+            bulk_insert_statement(connection, INSERT_STATEMENT, penguin_insert_values_list)
 
-    penguin_data_row_count = row_count(con, PENGUIN_TABLE_NAME)
+    penguin_data_row_count = row_count(connection, PENGUIN_TABLE_NAME)
     print(f'We have data on {penguin_data_row_count} penguins!')

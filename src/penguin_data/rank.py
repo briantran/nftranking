@@ -10,26 +10,26 @@ TokenRank = namedtuple('TokenRank', 'rarity_score rank percent_rank')
 QUERY_STRING = f'SELECT token, rarity_score, RANK() OVER (ORDER BY rarity_score DESC) AS rk, PERCENT_RANK() OVER (ORDER BY rarity_score ASC) AS prk FROM {PENGUIN_SCORE_TABLE_NAME} ORDER BY rarity_score DESC'
 
 
-def _confirm_score_data_is_populated(con):
-    if row_count(con, PENGUIN_SCORE_TABLE_NAME) < PENGUIN_COLLECTION_SIZE:
+def _confirm_score_data_is_populated(connection):
+    if row_count(connection, PENGUIN_SCORE_TABLE_NAME) < PENGUIN_COLLECTION_SIZE:
         raise Exception('Trying to fetch rank data before all data is scored')
 
 
-def rarity_rank_and_percentiles(con):
-    _confirm_score_data_is_populated(con)
+def rarity_rank_and_percentiles(connection):
+    _confirm_score_data_is_populated(connection)
 
-    cur = con.execute(QUERY_STRING)
-    return dict((row[0], TokenRank(*row[1:])) for row in cur)
+    cursor = connection.execute(QUERY_STRING)
+    return dict((token, TokenRank(*score_data)) for token, *score_data in cursor)
 
 
-def rarity_rank_and_percentile_for_token(con, token):
-    _confirm_score_data_is_populated(con)
+def rarity_rank_and_percentile_for_token(connection, token):
+    _confirm_score_data_is_populated(connection)
 
-    cur = con.execute(
+    cursor = connection.execute(
         f'SELECT rarity_score, rk, prk FROM ({QUERY_STRING}) WHERE token = ?',
         (token,)
     )
-    return TokenRank(*cur.fetchone())
+    return TokenRank(*cursor.fetchone())
 
 
 def pretty_print_rarest_and_most_common_nfts(rarity_ranks_and_percentiles):
