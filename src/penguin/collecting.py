@@ -17,6 +17,10 @@ INSERT_STATEMENT = f'INSERT INTO {PENGUIN_TABLE_NAME} (token, {PENGUIN_FEATURE_S
 
 
 async def _fetch_all_penguin_insert_values(tokens):
+    """Asynchronously fetch all IPFS penguin metadata associated with the input tokens and return a list of values to be
+    inserted into the PENGUIN_TABLE_NAME store.
+    """
+
     # Use a semaphore to throttle network requests
     semaphore = asyncio.Semaphore(DATA_FETCH_SEMAPHORE_VALUE)
 
@@ -34,7 +38,10 @@ async def _fetch_all_penguin_insert_values(tokens):
         )
 
 
-def populate_penguin_data_table(connection, batch_size, refresh_penguin_data=False):
+def populate_penguin_data_table(connection, batch_size, refresh_penguin_data):
+    """If the PENGUIN_TABLE_NAME store does not contain the entire collection of metadata, fetch and store the missing
+    metadata from IPFS.
+    """
     with connection:
         if refresh_penguin_data:
             connection.execute(DROP_TABLE_STATEMENT)
