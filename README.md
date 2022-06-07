@@ -34,7 +34,7 @@ python3 runner.py
 
 ![Screen Shot 2022-06-07 at 12 53 04 PM](https://user-images.githubusercontent.com/409320/172470420-980b4508-a3de-49dd-8f73-fb1483d85e59.png)
 
-**NOTE:** This script by default uses the SQLite database stored at [penguin.db](penguin.db). This can be overridden via the `--db-file` flag.
+**NOTE:** This script by default uses the already fully populated SQLite database stored at [penguin.db](penguin.db). This can be overridden via the `--db-file` flag.
 
 ```
 # Override the file storing the database. If the database file does not exist
