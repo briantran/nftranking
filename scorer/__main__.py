@@ -61,6 +61,7 @@ class Penguin:
 def row_count(con, table):
     return con.execute(f'SELECT COUNT() FROM {table}').fetchone()[0]
 
+
 def flush_buffer(con, insert_statement, insert_buffer):
     if not insert_buffer:
         return
@@ -113,8 +114,6 @@ def populate_penguin_score_table(con, batch_size):
     missing_data = penguin_score_row_count < COLLECTION_SIZE
     if missing_data:
         feature_count_dict = defaultdict(lambda: defaultdict(int))
-        # TODO: Relying on SQLite to do the counting is easier but may be suboptimal because it scans the table per feature.
-        #  Experiment with writing my own logic for scanning the entire table just once if given more time.
         for feature in Penguin.FEATURES:
             feature_counts = cur.execute(f'SELECT {feature}, COUNT() FROM {PENGUIN_TABLE_NAME} GROUP BY {feature}')
             for row in feature_counts:
