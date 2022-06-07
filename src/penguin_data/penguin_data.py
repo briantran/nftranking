@@ -17,11 +17,12 @@ INSERT_STATEMENT = f'INSERT INTO {PENGUIN_TABLE_NAME} (token, {PENGUIN_FEATURE_S
 
 
 async def _fetch_all_penguin_insert_values(tokens):
-    sem = asyncio.Semaphore(DATA_FETCH_SEMAPHORE_VALUE)
+    # Use a semaphore to throttle network requests
+    semaphore = asyncio.Semaphore(DATA_FETCH_SEMAPHORE_VALUE)
 
     async with aiohttp.ClientSession() as session:
         async def fetch_penguin_insert_values(token):
-            async with sem:
+            async with semaphore:
                 url = f'https://ipfs.io/ipfs/QmWXJXRdExse2YHRY21Wvh4pjRxNRQcWVhcKw4DLVnqGqs/{token}'
                 async with session.get(url) as response:
                     result = await response.json()
@@ -49,8 +50,8 @@ def populate_penguin_data_table(connection, batch_size, refresh_penguin_data=Fal
         already_stored_tokens = set(token for token, *_ in already_stored_tokens_cursor)
         tokens_to_fetch = (token for token in range(PENGUIN_COLLECTION_SIZE) if token not in already_stored_tokens)
 
-        for chunk in chunks(tokens_to_fetch, batch_size):
-            penguin_insert_values_list = asyncio.run(_fetch_all_penguin_insert_values(chunk))
+        for chunk_of_tokens_to_fetch in chunks(tokens_to_fetch, batch_size):
+            penguin_insert_values_list = asyncio.run(_fetch_all_penguin_insert_values(chunk_of_tokens_to_fetch))
             bulk_insert_statement(connection, INSERT_STATEMENT, penguin_insert_values_list)
 
     penguin_data_row_count = row_count(connection, PENGUIN_TABLE_NAME)
