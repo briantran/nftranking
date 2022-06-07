@@ -1,7 +1,8 @@
 import heapq
 from collections import namedtuple
 
-from src.const import PENGUIN_SCORE_TABLE_NAME, PENGUIN_COLLECTION_SIZE
+from src.const import PENGUIN_COLLECTION_SIZE
+from src.const import PENGUIN_SCORE_TABLE_NAME
 from src.utils import row_count
 
 TokenRank = namedtuple('TokenRank', 'rarity_score rank percent_rank')

@@ -1,8 +1,6 @@
 import argparse
-import heapq
 import json
 import sqlite3
-from pathlib import Path
 
 from src import penguin_data
 from src.const import DEFAULT_SQL_LITE_DB
@@ -23,7 +21,7 @@ def main():
     )
     parser.add_argument(
         '--db-file',
-        default=str(Path(__file__).parent / DEFAULT_SQL_LITE_DB),
+        default=DEFAULT_SQL_LITE_DB,
         help='file path of SQLite db'
     )
     parser.add_argument(

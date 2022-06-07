@@ -1,8 +1,12 @@
 from collections import defaultdict
 
-from src.const import PENGUIN_TABLE_NAME, PENGUIN_COLLECTION_SIZE, PENGUIN_SCORE_TABLE_NAME
+from src.const import PENGUIN_COLLECTION_SIZE
+from src.const import PENGUIN_SCORE_TABLE_NAME
+from src.const import PENGUIN_TABLE_NAME
 from src.penguin_data.dao import Penguin
-from src.utils import row_count, chunks, flush_buffer
+from src.utils import chunks
+from src.utils import flush_buffer
+from src.utils import row_count
 
 DROP_TABLE_STATEMENT = f'DROP TABLE IF EXISTS {PENGUIN_SCORE_TABLE_NAME}'
 CREATE_TABLE_STATEMENT = f'CREATE TABLE IF NOT EXISTS {PENGUIN_SCORE_TABLE_NAME} (token int primary key, statistical_score real, rarity_score real)'
